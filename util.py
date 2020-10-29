@@ -11,6 +11,18 @@ np.random.seed(seed)
 def get_class_labels():
     return os.listdir(train_dir)
 
+def preprocessing_function(img):
+    H, W, C = img.shape
+    if (H > crop_size_middle * 2) and (W > crop_size_middle * 2):
+        Hcenter = H // 2
+        Wcenter = W // 2
+        process_img = img[Hcenter - crop_size_middle : Hcenter + crop_size_middle,
+                          Wcenter - crop_size_middle : Wcenter + crop_size_middle,  
+                                                     :]
+        return process_img
+    else:
+        return img
+
 def image_data_generator():
     train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
                                     rescale = rescale,
@@ -20,7 +32,8 @@ def image_data_generator():
                                     width_shift_range=shift_range,
                                     height_shift_range=shift_range,
                                     horizontal_flip = True,
-                                    validation_split= val_split
+                                    validation_split= val_split,
+                                    # preprocessing_function = preprocessing_function
                                     )
     test_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale = rescale)
 
@@ -49,7 +62,7 @@ def image_data_generator():
                                     color_mode = color_mode,
                                     batch_size = batch_size,
                                     classes = get_class_labels(),
-                                    shuffle = False)
+                                    shuffle = True)
 
     return train_generator, validation_generator, test_generator
 

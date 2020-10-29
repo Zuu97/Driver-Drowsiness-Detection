@@ -5,7 +5,7 @@ import logging
 logging.getLogger('tensorflow').disabled = True
 import numpy as np
 from tensorflow.keras.models import model_from_json, Sequential, Model, load_model
-from tensorflow.keras.layers import Activation, Dense, Input
+from tensorflow.keras.layers import Activation, Dense, Input, BatchNormalization
 from tensorflow.keras import backend as K
 from matplotlib import pyplot as plt
 from util import *
@@ -25,6 +25,9 @@ class DrowsinessModel(object):
         self.validation_step = self.validation_generator.samples // valid_size
         self.test_step = self.test_generator.samples // batch_size
 
+        class_dict = self.train_generator.class_indices
+        self.class_dict = {v:k for k,v in class_dict.items()} #{0: 'Closed', 1: 'yawn', 2: 'no_yawn', 3: 'Open'}
+
     def model_conversion(self):
         num_classes = len(get_class_labels())
         mobilenet_functional = tf.keras.applications.MobileNet()
@@ -33,8 +36,11 @@ class DrowsinessModel(object):
             layer.trainable = False
             model.add(layer)
         model.add(Dense(dense_1, activation='relu'))
+        model.add(Dense(dense_1, activation='relu')) 
+        model.add(BatchNormalization()) 
         model.add(Dense(dense_2, activation='relu'))
         model.add(Dense(dense_2, activation='relu'))
+        model.add(BatchNormalization()) 
         model.add(Dense(dense_3, activation='relu'))
         model.add(Dense(dense_3, activation='relu'))
         model.add(Dense(dense_3, activation='relu'))
@@ -54,7 +60,7 @@ class DrowsinessModel(object):
                           validation_data=self.validation_generator,
                           validation_steps=self.validation_step,
                           epochs=epochs,
-                        #   verbose=verbose
+                          verbose=verbose
                         )
 
     def save_model(self):
@@ -72,7 +78,13 @@ class DrowsinessModel(object):
 
         self.model = model_from_json(loaded_model_json)
         self.model.load_weights(model_weights)
-        
+
+        self.model.compile(
+                          optimizer='Adam',
+                          loss='categorical_crossentropy',
+                          metrics=['accuracy']
+                          )
+
         print("Drowsiness Model Loaded")
 
     def evaluation(self):
@@ -82,9 +94,12 @@ class DrowsinessModel(object):
         print("test loss : ",loss)
         print("test accuracy : ",accuracy)
 
-    def predition(self):
-        Predictions = self.model.predict_generator(self.test_generator,steps=self.test_step)
+    def predition(self, img):
+        Predictions = self.model.predict_generator(img)
         print(Predictions)
+        P = int(np.argmax(Predictions,axis=1).squeeze())
+        Pclass = self.class_dict[P]
+        return Pclass
 
     def run(self):
         if os.path.exists(model_weights):
@@ -93,9 +108,9 @@ class DrowsinessModel(object):
             self.model_conversion()
             self.train()
             self.save_model()
-        self.evaluation()
-        self.predition()
+        # self.evaluation()
+        # self.predition()
 
-if __name__ == "__main__":
-    model = DrowsinessModel()
-    model.run()
+# if __name__ == "__main__":
+#     model = DrowsinessModel()
+#     model.run()

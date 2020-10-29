@@ -1,13 +1,15 @@
 import os 
 train_dir = os.path.join(os.getcwd(), 'data/Train/')
 test_dir = os.path.join(os.getcwd(), 'data/Test/')
-model_weights = "data/weights/doggy_mobilenetW1.h5"
-model_architecture = "data/weights/doggy_mobilenetW1.json"
+generate_img_dir = os.path.join(os.getcwd(), 'data/Generated Images')
+model_weights = "data/weights/model_weights.h5"
+model_architecture = "data/weights/model_architecture.json"
 
 test_split = 0.2
 val_split = 0.15
 seed = 42
 
+crop_size_middle = 150
 target_size=(224, 224)
 batch_size = 8
 valid_size = 4
@@ -24,5 +26,5 @@ rescale = 1./255
 dense_1 = 512
 dense_2 = 256
 dense_3 = 64
-epochs = 10
+epochs = 20
 verbose = 1
