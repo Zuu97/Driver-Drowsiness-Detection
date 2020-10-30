@@ -5,9 +5,9 @@ generate_img_dir = os.path.join(os.getcwd(), 'data/Generated Images')
 model_weights = "data/weights/model_weights.h5"
 model_architecture = "data/weights/model_architecture.json"
 
-test_split = 0.2
+test_split = 0.15
 val_split = 0.15
-seed = 42
+seed = 1234
 
 crop_size_middle = 150
 batch_size = 8
@@ -18,12 +18,12 @@ height = 224
 target_size = (width, height)
 input_shape = (width, height, 3)
 shear_range = 0.2
-zoom_range = 0.15
+zoom_range = 0.3
 rotation_range = 20
 shift_range = 0.2
 rescale = 1./255
 dense_1 = 512
 dense_2 = 256
 dense_3 = 64
-epochs = 20
+epochs = 10
 verbose = 1

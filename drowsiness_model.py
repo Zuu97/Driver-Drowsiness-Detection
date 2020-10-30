@@ -17,6 +17,7 @@ tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 class DrowsinessModel(object):
     def __init__(self):
+        split_train_test()
         train_generator, validation_generator, test_generator = image_data_generator()
         self.test_generator = test_generator
         self.train_generator = train_generator
@@ -30,27 +31,21 @@ class DrowsinessModel(object):
 
     def model_conversion(self):
         num_classes = len(get_class_labels())
-        # mobilenet_functional = tf.keras.applications.MobileNetV2(
-        #                                             weights="imagenet", 
-        #                                             input_shape=input_shape
-        #                                             )
-        mobilenet_functional = tf.keras.applications.MobileNetV2()
-        mobilenet_functional.trainable = False
-        inputs = mobilenet_functional.input
-        x = mobilenet_functional.layers[-2].output
-        x = Dense(dense_1, activation='relu')(x)
-        x = Dense(dense_1, activation='relu')(x) 
-        x = BatchNormalization()(x) 
-        x = Dense(dense_2, activation='relu')(x)
-        x = Dense(dense_2, activation='relu')(x)
-        x = BatchNormalization()(x) 
-        x = Dense(dense_3, activation='relu')(x)
-        outputs = Dense(num_classes, activation='softmax')(x)
-
-        model = Model(
-                    inputs, 
-                    outputs
-                    )
+        mobilenet_functional = tf.keras.applications.MobileNet()
+        model = Sequential()
+        for layer in mobilenet_functional.layers[:-1]:
+            layer.trainable = False
+            model.add(layer)
+        model.add(Dense(dense_1, activation='relu'))
+        model.add(Dense(dense_1, activation='relu')) 
+        model.add(BatchNormalization()) 
+        model.add(Dense(dense_2, activation='relu'))
+        model.add(Dense(dense_2, activation='relu'))
+        model.add(BatchNormalization()) 
+        model.add(Dense(dense_3, activation='relu'))
+        model.add(Dense(dense_3, activation='relu'))
+        model.add(Dense(dense_3, activation='relu'))
+        model.add(Dense(num_classes, activation='softmax'))
         model.summary()
         self.model = model
 
@@ -102,7 +97,6 @@ class DrowsinessModel(object):
 
     def predition(self, img):
         Predictions = self.model.predict_generator(img)
-        print(Predictions)
         P = int(np.argmax(Predictions,axis=1).squeeze())
         Pclass = self.class_dict[P]
         return Pclass
@@ -114,8 +108,8 @@ class DrowsinessModel(object):
             self.model_conversion()
             self.train()
             self.save_model()
-        self.evaluation()
+#         self.evaluation()
 
-if __name__ == "__main__":
-    model = DrowsinessModel()
-    model.run()
+# if __name__ == "__main__":
+#     model = DrowsinessModel()
+#     model.run()

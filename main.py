@@ -6,26 +6,34 @@ from drowsiness_model import DrowsinessModel
 from variables import*
 
 if __name__ == "__main__":
-    model = DrowsinessModel()
-    model.run()
-    video = cv.VideoCapture(0)
+        model = DrowsinessModel()
+        model.run()
+        video = cv.VideoCapture(0)
 
-    while True:
-            _, frame = video.read()
+        while True:
+                _, frame = video.read()
+                frame = cv.flip(frame, 1)
+                im = Image.fromarray(frame, 'RGB')
+                img_array = np.array(im)
+                img_array = cv.resize(img_array, target_size).astype("float32") 
+                img_array = img_array * rescale
+                assert (img_array.shape == input_shape), "corrupted image"
 
-            im = Image.fromarray(frame, 'RGB')
-            im = im.resize(target_size)
-            img_array = np.array(im)
-            img_array = np.expand_dims(img_array, axis=0)
-            prediction = model.predition(img_array)
-            # print(prediction)
-            # #if prediction is 0, which means I am missing on the image, then show the frame in gray color.
-            # if prediction == 0:
-            #         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                img_array = np.array([img_array])
+                pred = model.predition(img_array)
 
-            cv.imshow("Capturing", frame)
-            key=cv.waitKey(1)
-            if key == ord('q'):
-                    break
-    video.release()
-    cv.destroyAllWindows()
+                if pred == 'Closed':
+                        os.system('spd-say "In Danger In Danger"')
+                if pred == 'yawn':
+                        os.system('spd-say "Warning Warning"')
+
+                text = "Activity : {}".format(pred)
+                cv.putText(frame, text, (35, 50), cv.FONT_HERSHEY_SIMPLEX,
+                                1.25, (0, 255, 0), 5)
+
+                cv.imshow("Capturing", frame)
+                key=cv.waitKey(1)
+                if key == ord('q'):
+                        break
+        video.release()
+        cv.destroyAllWindows()
