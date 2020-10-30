@@ -5,7 +5,7 @@ import logging
 logging.getLogger('tensorflow').disabled = True
 import numpy as np
 from tensorflow.keras.models import model_from_json, Sequential, Model, load_model
-from tensorflow.keras.layers import Activation, Dense, Input, BatchNormalization
+from tensorflow.keras.layers import Activation, Dense, Input, BatchNormalization, Flatten, Dropout
 from tensorflow.keras import backend as K
 from matplotlib import pyplot as plt
 from util import *
@@ -30,21 +30,27 @@ class DrowsinessModel(object):
 
     def model_conversion(self):
         num_classes = len(get_class_labels())
-        mobilenet_functional = tf.keras.applications.MobileNet()
-        model = Sequential()
-        for layer in mobilenet_functional.layers[:-1]:
-            layer.trainable = False
-            model.add(layer)
-        model.add(Dense(dense_1, activation='relu'))
-        model.add(Dense(dense_1, activation='relu')) 
-        model.add(BatchNormalization()) 
-        model.add(Dense(dense_2, activation='relu'))
-        model.add(Dense(dense_2, activation='relu'))
-        model.add(BatchNormalization()) 
-        model.add(Dense(dense_3, activation='relu'))
-        model.add(Dense(dense_3, activation='relu'))
-        model.add(Dense(dense_3, activation='relu'))
-        model.add(Dense(num_classes, activation='softmax'))
+        # mobilenet_functional = tf.keras.applications.MobileNetV2(
+        #                                             weights="imagenet", 
+        #                                             input_shape=input_shape
+        #                                             )
+        mobilenet_functional = tf.keras.applications.MobileNetV2()
+        mobilenet_functional.trainable = False
+        inputs = mobilenet_functional.input
+        x = mobilenet_functional.layers[-2].output
+        x = Dense(dense_1, activation='relu')(x)
+        x = Dense(dense_1, activation='relu')(x) 
+        x = BatchNormalization()(x) 
+        x = Dense(dense_2, activation='relu')(x)
+        x = Dense(dense_2, activation='relu')(x)
+        x = BatchNormalization()(x) 
+        x = Dense(dense_3, activation='relu')(x)
+        outputs = Dense(num_classes, activation='softmax')(x)
+
+        model = Model(
+                    inputs, 
+                    outputs
+                    )
         model.summary()
         self.model = model
 
@@ -108,9 +114,8 @@ class DrowsinessModel(object):
             self.model_conversion()
             self.train()
             self.save_model()
-        # self.evaluation()
-        # self.predition()
+        self.evaluation()
 
-# if __name__ == "__main__":
-#     model = DrowsinessModel()
-#     model.run()
+if __name__ == "__main__":
+    model = DrowsinessModel()
+    model.run()

@@ -10,7 +10,6 @@ val_split = 0.15
 seed = 42
 
 crop_size_middle = 150
-target_size=(224, 224)
 batch_size = 8
 valid_size = 4
 color_mode = 'rgb'

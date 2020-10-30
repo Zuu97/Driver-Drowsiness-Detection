@@ -82,7 +82,6 @@ def split_train_test():
                 os.makedirs(destination_label_dir)
 
             image_arr = os.listdir(source_label_dir)
-            print(len(image_arr))
             Ntest = int(test_split * len(image_arr))
             test_img_arr = np.random.choice(image_arr, Ntest, replace=False)
 
